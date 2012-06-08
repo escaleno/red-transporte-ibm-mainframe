@@ -1,0 +1,121 @@
+***********************************************************
+*
+***********************************************************
+RED	SUBENTRY	BASES=(3)
+	BAL	12,CARGAMAT
+	BAL	12,INICMAT
+	BAL	12,INICVEC
+*	BAL	12,IMPRVEC
+*	BAL	12,IMPRIME
+	
+	SUBEXIT
+***********************************************************
+*DEFINICIONES
+***********************************************************
+MATADY	DS	675F
+VETIQ	DS	45F
+CCANTNOD	DS	CL2
+FCANTNOD	DS	F
+CCAPAC	DS	CL2
+WAITECB	DC	F'0'
+DOBLE	DS	D
+WTOBLOCK	DC	H'19'
+	DC	H'0'
+LINEA	DS	CL15
+BLANCOS	DC	15CL1' '
+CANTELEM	DC	F'225'
+
+
+
+***********************************************************
+*SUBRUTINAS
+***********************************************************
+
+
+***********************************************************
+*PIDE AL USUARIO NUMERO DE NODOS, VALIDA QUE SEA UN RANGO
+*VALIDO
+***********************************************************
+
+CARGAMAT	WTO	'-------------------------------------------------'
+PIDECANT	WTOR	'CANT DE NODOS DE LA RED (2DIGITOS)',CCANTNOD,,WAITECB
+	WAIT	ECB=WAITECB
+	PACK	DOBLE,CCANTNOD
+	MVN	DOBLE+7(1),=X'FF'
+	CVB	4,DOBLE
+	C	4,=F'5'
+	BL	ERRRANG
+	C	4,=F'15'
+	BH	ERRRANG
+	ST	4,FCANTNOD
+	BR	12
+ERRRANG	WTO	'NUMERO INVALIDO DEBE SER 5<=NRO<=15'
+	B	PIDECANT	
+
+
+***********************************************************
+*INICIZALIZA LA MATRIZ, ADYACENCIA,CAPACIDAD Y FLUJO CON 
+*VALOR 0
+*REGISTROS UTILIZADOS:
+*R4:GUARDA LA DIRECCION DE INICIO DE LA MATRIZ
+*R5:CANTIDAD DE ITERACIONES
+*R6:GUARDA EL VALOR 0 NECESARIO PARA INICIALIZAR
+***********************************************************
+
+INICMAT	LA	4,MATADY
+	LA	6,0
+	L	5,CANTELEM 
+PONECERO	ST	6,0(4) *PONGO 0 EN LA POS APUNTADA POR R4
+	A	4,=F'4'
+	BCT	5,PONECERO
+	BR	12
+
+***********************************************************
+*INICIALIZA EL VECTOR QUE TIENE LAS ETIQUETAS
+*R4:DIRECCION DEL VECTOR DE ETIQUETAS
+*R5:VALOR 0 PARA INICIALIZAR FLUJO
+*R6:CANTIDAD DE ITERACIONES
+***********************************************************
+INICVEC	LA	4,VETIQ
+	LA	5,0
+	LA	6,45
+CIC	ST	5,0(4)
+	A	4,=F'4'
+	BCT	6,CIC
+	BR	12
+*VERIFICAR SI FUNCIONA BIEN EL CICLO
+
+**************************************************
+IMPRIME	LA	4,MATADY
+	L	5,CANTELEM
+OK	LA	6,0
+	L	6,0(4)
+	CVD	6,DOBLE
+	UNPK	LINEA,DOBLE
+	MVZ	LINEA+14(1),=X'FF'
+	WTO	MF=(E,WTOBLOCK)
+	MVC	LINEA,BLANCOS
+	A	4,=F'4'
+	BCT	5,OK
+	BR	12
+
+***************************************************
+*R4:DIRECCION DE VECTOR
+*R5:CANTIDAD DE ITERACIONES
+*R6:SE USA PARA CONVERTIR A EMPAQUETADO
+IMPRVEC	LA	4,VETIQ
+	LA	5,45
+OK2	LA	6,0
+	L	6,0(4)
+	CVD	6,DOBLE
+	UNPK	LINEA,DOBLE
+	MVZ	LINEA+14(1),=X'FF'
+	WTO	MF=(E,WTOBLOCK)
+	MVC	LINEA,BLANCOS
+	A	4,=F'4'
+	BCT	5,OK2
+	BR	12
+
+	
+	
+	END
